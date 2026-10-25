@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String?
+  rooms     Room[]
+  customQuestions CustomQuestion[]
+  createdAt DateTime @default(now())
+}
+model Room {
+  id         String      @id @default(cuid())
+  code       String      @unique
+  language   String      @default("javascript")
+  host       User        @relation(fields: [hostId], references: [id])
+  hostId     String
+  scorecards Scorecard[]
+  feedbacks  Feedback[]
+  snapshots  Snapshot[]
+  shareToken String      @unique @default(cuid())
+  createdAt  DateTime    @default(now())
+}
+model Scorecard {
+  id             String   @id @default(cuid())
+  room           Room     @relation(fields: [roomId], references: [id])
+  roomId         String
+  problemSolving Int
+  communication  Int
+  codeQuality    Int
+  notes          String   @default("")
+  createdAt      DateTime @default(now())
+}
+
+model Feedback {
+  id           String   @id @default(cuid())
+  room         Room     @relation(fields: [roomId], references: [id])
+  roomId       String
+  summary      String
+  strengths    String[]
+  improvements String[]
+  createdAt    DateTime @default(now())
+}
+
+model Snapshot {
+  id        String   @id @default(cuid())
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    String
+  code      String
+  createdAt DateTime @default(now())
+  @@index([roomId, createdAt])
+}
+
+model CustomQuestion {
+  id          String   @id @default(cuid())
+  owner       User     @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  title       String
+  difficulty  String
+  topic       String   @default("Custom")
+  description String
+  createdAt   DateTime @default(now())
+}

@@ -1,0 +1,25 @@
+# `docker compose up -d db`            -> only Postgres (for local development)
+# `docker compose --profile full up`   -> database + API + web app
+services:
+  db:
+    image: postgres:16
+    environment: { POSTGRES_USER: mock, POSTGRES_PASSWORD: mock, POSTGRES_DB: mockmate }
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  server:
+    profiles: [full]
+    build: { context: ., dockerfile: apps/server/Dockerfile }
+    environment:
+      DATABASE_URL: postgresql://mock:mock@db:5432/mockmate
+      JWT_SECRET: change-me
+      WEB_ORIGIN: http://localhost:3000
+      JUDGE0_URL: https://ce.judge0.com
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports: ["4000:4000"]
+    depends_on: [db]
+  web:
+    profiles: [full]
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    ports: ["3000:3000"]
+    depends_on: [server]
+volumes: { pgdata: {} }
