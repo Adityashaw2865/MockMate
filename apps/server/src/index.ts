@@ -55,7 +55,8 @@ app.post('/auth/login', wrap(async (req: Request, res: Response) => {
   const b = z.object({ email: z.string().email(), password: z.string() }).parse(req.body)
   const u = await prisma.user.findUnique({ where: { email: b.email } })
   if (u && !u.password) return res.status(401).json({ error: 'This account uses Google sign-in' })
-  if (!u || !(await bcrypt.compare(b.password, u.password))) return res.status(401).json({ error: 'Wrong email or password' })
+  const hash = u?.password
+  if (!u || !hash || !(await bcrypt.compare(b.password, hash))) return res.status(401).json({ error: 'Wrong email or password' })
   res.json({ token: sign(u.id), user: { id: u.id, name: u.name } })
 }))
 // Google sign-in: the browser sends a Google ID token, we verify it with Google.
