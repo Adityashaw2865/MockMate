@@ -16,7 +16,7 @@ import { setupWSConnection } from 'y-websocket/bin/utils'
 
 const prisma = new PrismaClient()
 const app = express()
-const SECRET = process.env.JWT_SECRET || 'dev'
+const SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET is required in production') })() : 'dev')
 app.use(cors({ origin: process.env.WEB_ORIGIN || '*' }))
 app.use(express.json({ limit: '200kb' }))
 app.use(rateLimit({ windowMs: 60_000, limit: 240 }))
